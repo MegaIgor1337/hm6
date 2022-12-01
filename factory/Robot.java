@@ -14,11 +14,11 @@ public enum Robot {
         this.number = number;
     }
 
-    public static Robot nameByNumber(int number) {
+    public static String nameByNumber(int number) {
         Robot[] details = Robot.values();
         for (Robot r: details) {
             if (number == r.number) {
-                return r;
+                return r.name();
             }
         }
         return null;

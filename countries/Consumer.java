@@ -1,62 +1,69 @@
 package countries;
 
+import check.CheckClass;
 import factory.Factory;
 import factory.Robot;
 
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Set;
 
 public class Consumer extends Thread {
+    private static final String FORMAT_MESSAGE = "Country %s - winner!!!";
     private int countOfRobots;
     private final int limit;
     private volatile Factory factory;
     private volatile Set<Robot> details = new HashSet<>();
-
-    public Consumer(Factory factory, int limit) {
+    private CheckClass check;
+    public Consumer(Factory factory, int limit, CheckClass check) {
         this.limit = limit;
         this.factory = factory;
         this.countOfRobots = 0;
-    }
-
-    private synchronized void getDetail() {
-        while (factory.getStorage().isEmpty()) {
-            try {
-                System.out.println("заснул");
-                wait();
-            } catch (InterruptedException e) {}
-        }
-        Iterator<Robot> iterator = factory.getStorage().iterator();
-        while (iterator.hasNext()) {
-            Robot r = iterator.next();
-            boolean check = true;
-            for (Robot r1 : details) {
-                if (r.equals(r1)) {
-                    check = false;
-                }
-            }
-            if (check) {
-                details.add(r);
-                System.out.println("added detail");
-                factory.getStorage().remove(r);
-            }
-        }
+        this.check = check;
     }
 
 
     public void run() {
         while (countOfRobots != limit) {
-           while (details.size() != 6) {
-               getDetail();
-           }
-           Iterator<Robot> iterator = details.iterator();
-           while (iterator.hasNext()) {
-               details.remove(iterator.next());
-           }
-            System.out.println("robot created");
-           countOfRobots++;
+            while (details.size() != 6) {
+                synchronized (factory.getStorage()) {
+                    while (factory.getStorage().isEmpty()) {
+                        try {
+                            factory.getStorage().wait();
+                        } catch (InterruptedException e) {
+                        }
+                    }
+                    Robot detailToDeleteFromStorage = null;
+                    for (Robot r : factory.getStorage()) {
+                        if (details.add(r)) {
+                            detailToDeleteFromStorage = r;
+                            break;
+                        }
+                    }
+                    if (detailToDeleteFromStorage != null) {
+                        factory.getStorage().remove(detailToDeleteFromStorage);
+                    } else {
+                        try {
+                            factory.getStorage().wait();
+                        } catch (InterruptedException e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
+                }
+                if (!check.isCheck()) {
+                    break;
+                }
+            }
+            if (!check.isCheck()) {
+                break;
+            }
+            details.removeAll(details);
+            countOfRobots++;
         }
-        System.out.println(Thread.currentThread().getName() + " - win!");
-
+        synchronized (check) {
+            if (check.isCheck()) {
+                System.out.printf((FORMAT_MESSAGE) + "%n", Thread.currentThread().getName().substring(7));
+            }
+        }
+        check.changeCheckOnFalse();
     }
 }

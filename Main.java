@@ -1,22 +1,31 @@
+import check.CheckClass;
 import countries.Consumer;
 import factory.Factory;
 import factory.Producer;
 
-import static java.lang.Thread.sleep;
-
 public class Main {
-    private static final int LIMIT = 5;
+    private static final int LIMIT = 20;
     private static final long TIME = 200;
     private static final Factory FACTORY = new Factory();
 
     public static void main(String[] args) {
-        Consumer consumer = new Consumer(FACTORY, LIMIT);
-        Producer producer = new Producer(FACTORY, TIME);
+        CheckClass check = new CheckClass();
+        Producer producer = new Producer(FACTORY, TIME, check);
+        Consumer consumer1 = new Consumer(FACTORY, LIMIT, check);
+        Consumer consumer2 = new Consumer(FACTORY, LIMIT, check);
+        Consumer consumer3 = new Consumer(FACTORY, LIMIT, check);
+        Consumer consumer4 = new Consumer(FACTORY, LIMIT, check);
         producer.start();
-        consumer.start();
+        consumer1.start();
+        consumer2.start();
+        consumer3.start();
+        consumer4.start();
         try {
             producer.join();
-            consumer.join();
+            consumer1.join();
+            consumer2.join();
+            consumer3.join();
+            consumer4.join();
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
