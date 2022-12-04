@@ -1,26 +1,15 @@
 package factory;
 
 public enum Robot {
-    LEFT_HAND(1),
-    RIGHT_HAND(2),
-    LEFT_LEG(3),
-    RIGHT_LEG(4),
-    BODY(5),
-    HEAD(6);
+    LEFT_HAND,
+    RIGHT_HAND,
+    LEFT_LEG,
+    RIGHT_LEG,
+    BODY,
+    HEAD;
 
-    private final Integer number;
-
-    Robot(int number) {
-        this.number = number;
-    }
-
-    public static String nameByNumber(int number) {
-        Robot[] details = Robot.values();
-        for (Robot r: details) {
-            if (number == r.number) {
-                return r.name();
-            }
-        }
-        return null;
+    private final static Robot[] DETAILS = Robot.values();
+    public static Robot nameByNumber(int number) {
+        return DETAILS[number];
     }
 }

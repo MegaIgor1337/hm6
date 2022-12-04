@@ -1,24 +1,22 @@
 package countries;
 
-import check.CheckClass;
 import factory.Factory;
 import factory.Robot;
 
 import java.util.HashSet;
 import java.util.Set;
 
-public class Consumer extends Thread {
-    private static final String FORMAT_MESSAGE = "Country %s - winner!!!";
+public class Country extends Thread {
+    private static final String FORMAT_MESSAGE = "Country %s - winner!!!\n";
     private int countOfRobots;
     private final int limit;
-    private volatile Factory factory;
-    private volatile Set<Robot> details = new HashSet<>();
-    private CheckClass check;
-    public Consumer(Factory factory, int limit, CheckClass check) {
+    private final Factory factory;
+    private final Set<Robot> details = new HashSet<>();
+
+    public Country(factory.Factory factory, int limit) {
         this.limit = limit;
         this.factory = factory;
         this.countOfRobots = 0;
-        this.check = check;
     }
 
 
@@ -45,25 +43,28 @@ public class Consumer extends Thread {
                         try {
                             factory.getStorage().wait();
                         } catch (InterruptedException e) {
-                            throw new RuntimeException(e);
                         }
                     }
                 }
-                if (!check.isCheck()) {
+                if (!factory.isCheck()) {
                     break;
                 }
             }
-            if (!check.isCheck()) {
+            if (!factory.isCheck()) {
                 break;
             }
             details.removeAll(details);
             countOfRobots++;
         }
-        synchronized (check) {
-            if (check.isCheck()) {
-                System.out.printf((FORMAT_MESSAGE) + "%n", Thread.currentThread().getName().substring(7));
+        synchronized ((Object) factory.isCheck()) {
+            if (factory.isCheck()) {
+                printCountryWinner(Thread.currentThread().getName());
+                factory.changeCheckOnFalse();
             }
         }
-        check.changeCheckOnFalse();
+    }
+
+    private void printCountryWinner(String nameThread) {
+        System.out.printf(FORMAT_MESSAGE, nameThread.substring(7));
     }
 }
